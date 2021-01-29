@@ -1,49 +1,99 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
+import { BehaviorSubject, Observable, zip } from "rxjs";
+import { AppStatus } from "./AppStatus";
+import { Clock } from "./Clock";
+import { Scenario } from "./Scenario";
+import { Scene } from "./Scene";
+
+export abstract class BaseScenario implements Scenario {
+  constructor(protected status: BehaviorSubject<AppStatus>) {}
+  abstract update(delta: number): void;
+  abstract render(ctx: CanvasRenderingContext2D): void;
+}
+
+export class PreloadingScenario extends BaseScenario {
+  update(delta: number): void {}
+
+  render(ctx: CanvasRenderingContext2D): void {
+    const w = this.status.value.w;
+    const h = this.status.value.h;
+
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = "#FF00FF";
+    ctx.font = "32px VT323, monospace";
+
+    ctx.save();
+    ctx.translate(0.5, 0.5);
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.fillText("ER-TETRIS", 32, 32);
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#00FFFF";
+    ctx.fillText("LOADING", w / 2, h / 2);
+    ctx.restore();
+  }
+}
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  selector: "app-root",
+  templateUrl: "./app.component.html",
+  styleUrls: ["./app.component.scss"],
 })
-export class AppComponent implements OnInit {
-
+export class AppComponent implements AfterViewInit {
   @ViewChild("mainCanvas") private canvasRef!: ElementRef;
   private context!: CanvasRenderingContext2D;
-  private w: number = 0;
-  private h: number = 0;
+  private scenario?: Scenario;
+  private clock: Clock = new Clock();
+  public readonly status: BehaviorSubject<AppStatus> = new BehaviorSubject<AppStatus>(
+    { scene: Scene.PRELOADING, w: 0, h: 0 }
+  );
 
-
-  ngOnInit(): void {
-    window.addEventListener("load", () => {
-      const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
-      this.context = canvas.getContext("2d")!;
+  ngAfterViewInit(): void {
+    const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
+    const ctx = canvas.getContext("2d");
+    if (ctx) {
+      this.context = ctx;
       this.context.imageSmoothingEnabled = false;
 
-      this.w = canvas.width;
-      this.h = canvas.height;
-      this.render(true);
-    })
+      this.status.value.w = canvas.width;
+      this.status.value.h = canvas.height;
+    }
+
+    this.status.subscribe((v) => {
+      switch (v.scene) {
+        case Scene.PRELOADING:
+          this.scenario = new PreloadingScenario(this.status);
+          break;
+      }
+    });
+
+    zip(
+      this.preloadImage("assets/b-grey.png"), //
+      this.preloadImage("assets/b-grey.png"), //
+      this.preloadImage("assets/b-grey.png") //
+    ).subscribe((is) => {
+      console.log(is);
+    });
+
+    this.render();
   }
 
-  render(first: boolean = false): void {
-    this.update();
-    this.context.clearRect(0, 0, this.w, this.h);
-    this.context.fillStyle = "#FF00FF";
-    this.context.font = "32px VT323, monospace";
-    this.context.save();
-    this.context.translate(0.5, 0.5);
-    this.context.textAlign = "left";
-    this.context.textBaseline = "top";
-    this.context.fillText("ER-TETRIS", 32, 32);
-    this.context.textAlign = "center";
-    this.context.textBaseline = "middle";
-    this.context.fillStyle = "#00FFFF";
-    this.context.fillText("LOADING", this.w/2, this.h/2);
-    this.context.restore();
+  preloadImage(src: string): Observable<HTMLImageElement> {
+    return new Observable<HTMLImageElement>((sub) => {
+      const i = new Image();
+      i.onload = (ev) => {
+        sub.next(i);
+        sub.complete();
+      };
+      i.src = src;
+    });
+  }
+
+  render(): void {
+    this.scenario?.update(this.clock.getDelta());
+    this.scenario?.render(this.context);
 
     requestAnimationFrame(() => this.render());
-  }
-
-  update():void {
   }
 }
