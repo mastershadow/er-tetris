@@ -5,35 +5,9 @@ import { Clock } from "./Clock";
 import { Scenario } from "./Scenario";
 import { Scene } from "./Scene";
 
-export abstract class BaseScenario implements Scenario {
-  constructor(protected status: BehaviorSubject<AppStatus>) {}
-  abstract update(delta: number): void;
-  abstract render(ctx: CanvasRenderingContext2D): void;
-}
-
-export class PreloadingScenario extends BaseScenario {
-  update(delta: number): void {}
-
-  render(ctx: CanvasRenderingContext2D): void {
-    const w = this.status.value.w;
-    const h = this.status.value.h;
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "#FF00FF";
-    ctx.font = "32px VT323, monospace";
-
-    ctx.save();
-    ctx.translate(0.5, 0.5);
-    ctx.textAlign = "left";
-    ctx.textBaseline = "top";
-    ctx.fillText("ER-TETRIS", 32, 32);
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillStyle = "#00FFFF";
-    ctx.fillText("LOADING", w / 2, h / 2);
-    ctx.restore();
-  }
-}
+import WebFont from "webfontloader";
+import { PreloadingScenario } from "./scenario/PreloadingScenario";
+import { LoadingScenario } from "./scenario/LoadingScenario";
 
 @Component({
   selector: "app-root",
@@ -45,8 +19,9 @@ export class AppComponent implements AfterViewInit {
   private context!: CanvasRenderingContext2D;
   private scenario?: Scenario;
   private clock: Clock = new Clock();
+  private currentScene?: Scene;
   public readonly status: BehaviorSubject<AppStatus> = new BehaviorSubject<AppStatus>(
-    { scene: Scene.PRELOADING, w: 0, h: 0 }
+    {}
   );
 
   ngAfterViewInit(): void {
@@ -56,16 +31,38 @@ export class AppComponent implements AfterViewInit {
       this.context = ctx;
       this.context.imageSmoothingEnabled = false;
 
-      this.status.value.w = canvas.width;
-      this.status.value.h = canvas.height;
+      this.status.next({
+        w: canvas.width,
+        h: canvas.height,
+        scene: Scene.PRELOADING,
+      });
     }
 
     this.status.subscribe((v) => {
-      switch (v.scene) {
-        case Scene.PRELOADING:
-          this.scenario = new PreloadingScenario(this.status);
-          break;
+      if (this.currentScene === undefined || v.scene !== this.currentScene) {
+        switch (v.scene) {
+          case Scene.PRELOADING:
+            this.scenario = new PreloadingScenario(this.status);
+            break;
+          case Scene.LOADING:
+            this.scenario = new LoadingScenario(this.status);
+            break;
+        }
       }
+    });
+
+    this.render();
+
+    WebFont.load({
+      google: {
+        families: ["VT323"],
+      },
+      classes: false,
+      active: () => {
+        const s = this.status.value;
+        s.scene = Scene.LOADING;
+        this.status.next(s);
+      },
     });
 
     zip(
@@ -75,8 +72,6 @@ export class AppComponent implements AfterViewInit {
     ).subscribe((is) => {
       console.log(is);
     });
-
-    this.render();
   }
 
   preloadImage(src: string): Observable<HTMLImageElement> {
