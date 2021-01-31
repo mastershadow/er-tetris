@@ -1,13 +1,14 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
 import { BehaviorSubject, Observable, zip } from "rxjs";
 import { AppStatus } from "./AppStatus";
-import { Clock } from "./Clock";
-import { Scenario } from "./Scenario";
-import { Scene } from "./Scene";
+import { Clock } from "./core/Clock";
+import { Scenario } from "./scenario/Scenario";
+import { GameScene } from "./GameScene";
 
 import WebFont from "webfontloader";
 import { PreloadingScenario } from "./scenario/PreloadingScenario";
 import { LoadingScenario } from "./scenario/LoadingScenario";
+import { Renderer } from "./core/Renderer";
 
 @Component({
   selector: "app-root",
@@ -19,7 +20,8 @@ export class AppComponent implements AfterViewInit {
   private context!: CanvasRenderingContext2D;
   private scenario?: Scenario;
   private clock: Clock = new Clock();
-  private currentScene?: Scene;
+  private currentScene?: GameScene;
+  private renderer?: Renderer;
   public readonly status: BehaviorSubject<AppStatus> = new BehaviorSubject<AppStatus>(
     {}
   );
@@ -31,20 +33,22 @@ export class AppComponent implements AfterViewInit {
       this.context = ctx;
       this.context.imageSmoothingEnabled = false;
 
+      this.renderer = new Renderer(this.context);
+
       this.status.next({
         w: canvas.width,
         h: canvas.height,
-        scene: Scene.PRELOADING,
+        scene: GameScene.PRELOADING,
       });
     }
 
     this.status.subscribe((v) => {
       if (this.currentScene === undefined || v.scene !== this.currentScene) {
         switch (v.scene) {
-          case Scene.PRELOADING:
+          case GameScene.PRELOADING:
             this.scenario = new PreloadingScenario(this.status);
             break;
-          case Scene.LOADING:
+          case GameScene.LOADING:
             this.scenario = new LoadingScenario(this.status);
             break;
         }
@@ -60,7 +64,7 @@ export class AppComponent implements AfterViewInit {
       classes: false,
       active: () => {
         const s = this.status.value;
-        s.scene = Scene.LOADING;
+        s.scene = GameScene.LOADING;
         this.status.next(s);
       },
     });
@@ -86,8 +90,10 @@ export class AppComponent implements AfterViewInit {
   }
 
   render(): void {
-    this.scenario?.update(this.clock.getDelta());
-    this.scenario?.render(this.context);
+    if (this.scenario) {
+      this.scenario?.update(this.clock.getDelta());
+      this.renderer?.render(this.scenario);
+    }
 
     requestAnimationFrame(() => this.render());
   }

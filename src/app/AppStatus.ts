@@ -1,6 +1,6 @@
-import { Scene } from "./Scene";
+import { GameScene } from "./GameScene";
 export interface AppStatus {
-  scene?: Scene;
+  scene?: GameScene;
   w?: number;
   h?: number;
 }

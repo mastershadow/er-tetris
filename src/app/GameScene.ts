@@ -1,4 +1,4 @@
-export enum Scene {
+export enum GameScene {
   PRELOADING,
   LOADING,
   CREDITS,
