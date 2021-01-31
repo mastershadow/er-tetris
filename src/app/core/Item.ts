@@ -9,6 +9,10 @@ export abstract class Item {
   children: Item[] = [];
   id?: string;
   abstract type: ItemType;
+
+  add(i: Item): void {
+    this.children.push(i);
+  }
 }
 
 export enum ItemType {

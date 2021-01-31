@@ -8,6 +8,4 @@ export class PreloadingScenario extends BaseScenario {
   }
 
   update(delta: number): void {}
-
-  render(ctx: CanvasRenderingContext2D): void {}
 }
