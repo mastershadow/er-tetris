@@ -1,12 +1,14 @@
 import { Size } from "./Size";
-import { V2D } from "./math/V2D";
+import { V2 } from "./math/V2";
 export abstract class Item {
-  position: V2D = new V2D();
-  rotation: V2D = new V2D();
-  scale: V2D = new V2D();
+  position: V2 = new V2();
+  rotation: V2 = new V2();
+  scale: V2 = new V2();
   size: Size = { w: 0, h: 0 };
   visible: boolean = true;
+  renderable: boolean = true;
   children: Item[] = [];
+  zDepth: number = 0;
   id?: string;
   abstract type: ItemType;
 
