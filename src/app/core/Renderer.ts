@@ -16,9 +16,9 @@ export class Renderer {
     if (this.autoClear) {
       this.clear();
     }
-
-    this.ctx.save();
-    this.ctx.restore();
+    for (const item of itemsToRender) {
+      item.render(this.ctx);
+    }
   }
 
   visitAndSort(scene: Scene): Item[] {

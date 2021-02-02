@@ -53,6 +53,8 @@ export class AppComponent implements AfterViewInit {
             break;
         }
       }
+      this.renderer!.w = v.w || 0;
+      this.renderer!.h = v.h || 0;
     });
 
     this.render();
