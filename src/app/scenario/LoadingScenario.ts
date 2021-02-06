@@ -1,5 +1,6 @@
-import { BehaviorSubject, Observable, zip } from "rxjs";
+import { BehaviorSubject, zip } from "rxjs";
 import { AppStatus } from "../AppStatus";
+import { AppInputEvent, AppInputEventType } from "../core/AppInputEvent";
 import { Resources } from "../core/Resources";
 import { TextItem } from "../core/TextItem";
 import { GameScene } from "../GameScene";
@@ -8,8 +9,13 @@ import { BaseScenario } from "./BaseScenario";
 export class LoadingScenario extends BaseScenario {
   title: TextItem;
   loading: TextItem;
+  continueButton: TextItem;
+  hasLoaded: boolean = false;
 
-  constructor(protected status: BehaviorSubject<AppStatus>) {
+  constructor(
+    protected status: BehaviorSubject<AppStatus>,
+    protected events: BehaviorSubject<AppInputEvent | undefined>
+  ) {
     super(status);
 
     this.title = new TextItem();
@@ -27,33 +33,39 @@ export class LoadingScenario extends BaseScenario {
     this.loading.font = "28px VT323, monospace";
     this.scene.add(this.loading);
 
+    this.continueButton = new TextItem();
+    this.continueButton.visible = false;
+    this.continueButton.text = "CLICK TO CONTINUE";
+    this.continueButton.color = "#00FFFF";
+    this.continueButton.align = "center";
+    this.continueButton.baseline = "middle";
+    this.continueButton.font = "28px VT323, monospace";
+    this.scene.add(this.continueButton);
+
     this.status.subscribe((s) => {
       this.loading.position.set(s.w! / 2, s.h! / 2);
+      this.continueButton.position.set(s.w! / 2, s.h! / 2);
+    });
+
+    this.events.subscribe((e: AppInputEvent | undefined) => {
+      if (e && e.type === AppInputEventType.MOUSE && this.hasLoaded) {
+        this.status.value.scene = GameScene.MAINSCREEN;
+        this.status.next(this.status.value);
+      }
     });
 
     zip(
-      this.preloadImage("assets/b-grey.png"), //
-      this.preloadImage("assets/b-grey.png"), //
-      this.preloadImage("assets/b-grey.png") //
+      Resources.preloadImage("BLOCK-GREY", "assets/b-grey.png"), //
+      Resources.preloadAudio("MUSIC", "assets/audio.ogg")
     ).subscribe((is) => {
       for (const v of is) {
-        Resources.set(v.src, v);
+        Resources.set(v.key, v.obj);
       }
-      this.status.value.scene = GameScene.MAINSCREEN;
-      this.status.next(this.status.value);
+      this.loading.visible = false;
+      this.continueButton.visible = true;
+      this.hasLoaded = true;
     });
   }
 
   update(delta: number): void {}
-
-  preloadImage(src: string): Observable<HTMLImageElement> {
-    return new Observable<HTMLImageElement>((sub) => {
-      const i = new Image();
-      i.onload = (ev) => {
-        sub.next(i);
-        sub.complete();
-      };
-      i.src = src;
-    });
-  }
 }

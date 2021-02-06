@@ -8,3 +8,7 @@ This is the first step in a long path.
 ## Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+
+# RESOURCES
+
+Audio theme is royalty free Arcade Kid - FesliyanStudios.com - David_Renda

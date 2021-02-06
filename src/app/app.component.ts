@@ -10,6 +10,7 @@ import { PreloadingScenario } from "./scenario/PreloadingScenario";
 import { LoadingScenario } from "./scenario/LoadingScenario";
 import { Renderer } from "./core/Renderer";
 import { MainScreenScenario } from "./scenario/MainScreenScenario";
+import { AppInputEvent, AppInputEventType } from "./core/AppInputEvent";
 
 @Component({
   selector: "app-root",
@@ -26,6 +27,9 @@ export class AppComponent implements AfterViewInit {
   public readonly status: BehaviorSubject<AppStatus> = new BehaviorSubject<AppStatus>(
     {}
   );
+  public readonly events: BehaviorSubject<
+    AppInputEvent | undefined
+  > = new BehaviorSubject<AppInputEvent | undefined>(undefined);
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
@@ -43,6 +47,29 @@ export class AppComponent implements AfterViewInit {
       });
     }
 
+    canvas.addEventListener("click", (ev: MouseEvent) => {
+      this.events.next({
+        x: ev.clientX,
+        y: ev.clientY,
+        type: AppInputEventType.MOUSE,
+        button: ev.button,
+      });
+    });
+
+    window.addEventListener("keydown", (ev: KeyboardEvent) => {
+      this.events.next({
+        type: AppInputEventType.KEY_DOWN,
+        button: ev.key,
+      });
+    });
+
+    window.addEventListener("keyup", (ev: KeyboardEvent) => {
+      this.events.next({
+        type: AppInputEventType.KEY_UP,
+        button: ev.key,
+      });
+    });
+
     this.status.subscribe((v) => {
       if (this.currentScene === undefined || v.scene !== this.currentScene) {
         switch (v.scene) {
@@ -50,7 +77,7 @@ export class AppComponent implements AfterViewInit {
             this.scenario = new PreloadingScenario(this.status);
             break;
           case GameScene.LOADING:
-            this.scenario = new LoadingScenario(this.status);
+            this.scenario = new LoadingScenario(this.status, this.events);
             break;
           case GameScene.MAINSCREEN:
             this.scenario = new MainScreenScenario(this.status);
