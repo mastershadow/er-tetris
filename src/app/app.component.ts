@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
-import { BehaviorSubject, Observable, zip } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { AppStatus } from "./AppStatus";
 import { Clock } from "./core/Clock";
 import { Scenario } from "./scenario/Scenario";
@@ -9,6 +9,7 @@ import WebFont from "webfontloader";
 import { PreloadingScenario } from "./scenario/PreloadingScenario";
 import { LoadingScenario } from "./scenario/LoadingScenario";
 import { Renderer } from "./core/Renderer";
+import { MainScreenScenario } from "./scenario/MainScreenScenario";
 
 @Component({
   selector: "app-root",
@@ -51,6 +52,9 @@ export class AppComponent implements AfterViewInit {
           case GameScene.LOADING:
             this.scenario = new LoadingScenario(this.status);
             break;
+          case GameScene.MAINSCREEN:
+            this.scenario = new MainScreenScenario(this.status);
+            break;
         }
       }
       this.renderer!.w = v.w || 0;
@@ -69,25 +73,6 @@ export class AppComponent implements AfterViewInit {
         s.scene = GameScene.LOADING;
         this.status.next(s);
       },
-    });
-
-    zip(
-      this.preloadImage("assets/b-grey.png"), //
-      this.preloadImage("assets/b-grey.png"), //
-      this.preloadImage("assets/b-grey.png") //
-    ).subscribe((is) => {
-      console.log(is);
-    });
-  }
-
-  preloadImage(src: string): Observable<HTMLImageElement> {
-    return new Observable<HTMLImageElement>((sub) => {
-      const i = new Image();
-      i.onload = (ev) => {
-        sub.next(i);
-        sub.complete();
-      };
-      i.src = src;
     });
   }
 
