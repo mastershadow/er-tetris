@@ -80,7 +80,7 @@ export class AppComponent implements AfterViewInit {
             this.scenario = new LoadingScenario(this.status, this.events);
             break;
           case GameScene.MAINSCREEN:
-            this.scenario = new MainScreenScenario(this.status);
+            this.scenario = new MainScreenScenario(this.status, this.events);
             break;
         }
       }

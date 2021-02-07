@@ -56,6 +56,7 @@ export class LoadingScenario extends BaseScenario {
 
     zip(
       Resources.preloadImage("BLOCK-GREY", "assets/b-grey.png"), //
+      Resources.preloadImage("TITLE", "assets/title.png"), //
       Resources.preloadAudio("MUSIC", "assets/audio.ogg")
     ).subscribe((is) => {
       for (const v of is) {
