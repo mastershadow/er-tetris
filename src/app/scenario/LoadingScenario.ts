@@ -1,4 +1,4 @@
-import { BehaviorSubject, zip } from "rxjs";
+import { BehaviorSubject, Subject, zip } from "rxjs";
 import { AppStatus } from "../AppStatus";
 import { AppInputEvent, AppInputEventType } from "../core/AppInputEvent";
 import { Resources } from "../core/Resources";
@@ -14,9 +14,9 @@ export class LoadingScenario extends BaseScenario {
 
   constructor(
     protected status: BehaviorSubject<AppStatus>,
-    protected events: BehaviorSubject<AppInputEvent | undefined>
+    protected events: Subject<AppInputEvent | undefined>
   ) {
-    super(status);
+    super(status, events);
 
     this.title = new TextItem();
     this.title.text = "ER-TETRIS";
@@ -42,21 +42,26 @@ export class LoadingScenario extends BaseScenario {
     this.continueButton.font = "28px VT323, monospace";
     this.scene.add(this.continueButton);
 
-    this.status.subscribe((s) => {
-      this.loading.position.set(s.w! / 2, s.h! / 2);
-      this.continueButton.position.set(s.w! / 2, s.h! / 2);
-    });
+    this.subscriptions.push(
+      this.status.subscribe((s) => {
+        this.loading.position.set(s.w! / 2, s.h! / 2);
+        this.continueButton.position.set(s.w! / 2, s.h! / 2);
+      })
+    );
 
-    this.events.subscribe((e: AppInputEvent | undefined) => {
-      if (e && e.type === AppInputEventType.MOUSE && this.hasLoaded) {
-        this.status.value.scene = GameScene.MAINSCREEN;
-        this.status.next(this.status.value);
-      }
-    });
+    this.subscriptions.push(
+      this.events.subscribe((e: AppInputEvent | undefined) => {
+        if (e && e.type === AppInputEventType.MOUSE && this.hasLoaded) {
+          this.status.value.scene = GameScene.MAINSCREEN;
+          this.status.next(this.status.value);
+        }
+      })
+    );
 
     zip(
       Resources.preloadImage("BLOCK-GREY", "assets/b-grey.png"), //
       Resources.preloadImage("TITLE", "assets/title.png"), //
+      Resources.preloadImage("TITLE-BG", "assets/title-bg.png"), //
       Resources.preloadAudio("MUSIC", "assets/audio.ogg")
     ).subscribe((is) => {
       for (const v of is) {

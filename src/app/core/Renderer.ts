@@ -36,7 +36,8 @@ export class Renderer {
         }
       }
     }
-    return items;
+
+    return items.sort((a, b) => a.zDepth - b.zDepth);
   }
 
   clear(): void {

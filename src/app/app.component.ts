@@ -1,16 +1,18 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from "@angular/core";
-import { BehaviorSubject } from "rxjs";
-import { AppStatus } from "./AppStatus";
-import { Clock } from "./core/Clock";
-import { Scenario } from "./scenario/Scenario";
-import { GameScene } from "./GameScene";
-
+import { BehaviorSubject, Subject } from "rxjs";
 import WebFont from "webfontloader";
-import { PreloadingScenario } from "./scenario/PreloadingScenario";
-import { LoadingScenario } from "./scenario/LoadingScenario";
-import { Renderer } from "./core/Renderer";
-import { MainScreenScenario } from "./scenario/MainScreenScenario";
+import { AppStatus } from "./AppStatus";
 import { AppInputEvent, AppInputEventType } from "./core/AppInputEvent";
+import { Clock } from "./core/Clock";
+import { Renderer } from "./core/Renderer";
+import { GameScene } from "./GameScene";
+import { CreditsScenario } from "./scenario/CreditsScenario";
+import { GameScenario } from "./scenario/GameScenario";
+import { HighscoreScenario } from "./scenario/HighscoreScenario";
+import { LoadingScenario } from "./scenario/LoadingScenario";
+import { MainScreenScenario } from "./scenario/MainScreenScenario";
+import { PreloadingScenario } from "./scenario/PreloadingScenario";
+import { Scenario } from "./scenario/Scenario";
 
 @Component({
   selector: "app-root",
@@ -27,9 +29,9 @@ export class AppComponent implements AfterViewInit {
   public readonly status: BehaviorSubject<AppStatus> = new BehaviorSubject<AppStatus>(
     {}
   );
-  public readonly events: BehaviorSubject<
+  public readonly events: Subject<AppInputEvent | undefined> = new Subject<
     AppInputEvent | undefined
-  > = new BehaviorSubject<AppInputEvent | undefined>(undefined);
+  >();
 
   ngAfterViewInit(): void {
     const canvas = this.canvasRef.nativeElement as HTMLCanvasElement;
@@ -47,40 +49,68 @@ export class AppComponent implements AfterViewInit {
       });
     }
 
-    canvas.addEventListener("click", (ev: MouseEvent) => {
-      this.events.next({
-        x: ev.clientX,
-        y: ev.clientY,
-        type: AppInputEventType.MOUSE,
-        button: ev.button,
-      });
-    });
+    canvas.addEventListener(
+      "click",
+      (ev: MouseEvent) => {
+        this.events.next({
+          x: ev.clientX,
+          y: ev.clientY,
+          type: AppInputEventType.MOUSE,
+          button: ev.button,
+        });
+      },
+      { capture: true, passive: true }
+    );
 
-    window.addEventListener("keydown", (ev: KeyboardEvent) => {
-      this.events.next({
-        type: AppInputEventType.KEY_DOWN,
-        button: ev.key,
-      });
-    });
+    window.addEventListener(
+      "keydown",
+      (ev: KeyboardEvent) => {
+        this.events.next({
+          type: AppInputEventType.KEY_DOWN,
+          button: ev.key,
+        });
+      },
+      { capture: true, passive: true }
+    );
 
-    window.addEventListener("keyup", (ev: KeyboardEvent) => {
-      this.events.next({
-        type: AppInputEventType.KEY_UP,
-        button: ev.key,
-      });
-    });
+    window.addEventListener(
+      "keyup",
+      (ev: KeyboardEvent) => {
+        this.events.next({
+          type: AppInputEventType.KEY_UP,
+          button: ev.key,
+        });
+      },
+      { capture: true, passive: true }
+    );
 
     this.status.subscribe((v) => {
       if (this.currentScene === undefined || v.scene !== this.currentScene) {
+        this.currentScene = v.scene!;
+
+        if (this.scenario) {
+          this.scenario.destroy();
+          this.scenario = undefined;
+        }
+
         switch (v.scene) {
           case GameScene.PRELOADING:
-            this.scenario = new PreloadingScenario(this.status);
+            this.scenario = new PreloadingScenario(this.status, this.events);
             break;
           case GameScene.LOADING:
             this.scenario = new LoadingScenario(this.status, this.events);
             break;
           case GameScene.MAINSCREEN:
             this.scenario = new MainScreenScenario(this.status, this.events);
+            break;
+          case GameScene.CREDITS:
+            this.scenario = new CreditsScenario(this.status, this.events);
+            break;
+          case GameScene.HIGHSCORE:
+            this.scenario = new HighscoreScenario(this.status, this.events);
+            break;
+          case GameScene.GAME:
+            this.scenario = new GameScenario(this.status, this.events);
             break;
         }
       }

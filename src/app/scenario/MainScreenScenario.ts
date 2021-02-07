@@ -1,11 +1,12 @@
+import { BehaviorSubject, Subject } from "rxjs";
 import { AppStatus } from "../AppStatus";
-import { BaseScenario } from "./BaseScenario";
-import { BehaviorSubject } from "rxjs";
-import { Resources } from "../core/Resources";
-import { SpriteItem } from "../core/SpriteItem";
 import { AppInputEvent, AppInputEventType } from "../core/AppInputEvent";
 import { Group } from "../core/Group";
+import { Resources } from "../core/Resources";
+import { SpriteItem } from "../core/SpriteItem";
 import { TextItem } from "../core/TextItem";
+import { GameScene } from "../GameScene";
+import { BaseScenario } from "./BaseScenario";
 
 class MainMenu extends Group {
   public static readonly NEW_GAME: string = "NEW GAME";
@@ -39,7 +40,7 @@ class MainMenu extends Group {
     hsItem.align = MainMenu.ALIGNMENT;
     hsItem.baseline = MainMenu.BASELINE;
     hsItem.font = MainMenu.FONT;
-    hsItem.position.y = 64;
+    hsItem.position.y = 48;
     this.items.set(MainMenu.HIGHSCORE, hsItem);
     this.add(hsItem);
 
@@ -49,7 +50,7 @@ class MainMenu extends Group {
     creditsItem.align = MainMenu.ALIGNMENT;
     creditsItem.baseline = MainMenu.BASELINE;
     creditsItem.font = MainMenu.FONT;
-    creditsItem.position.y = 128;
+    creditsItem.position.y = 96;
     this.items.set(MainMenu.CREDITS, creditsItem);
     this.add(creditsItem);
 
@@ -89,42 +90,60 @@ class MainMenu extends Group {
 
 export class MainScreenScenario extends BaseScenario {
   private title: SpriteItem;
+  private bg: SpriteItem;
   private mainMenu: MainMenu;
 
   constructor(
     protected status: BehaviorSubject<AppStatus>,
-    protected events: BehaviorSubject<AppInputEvent | undefined>
+    protected events: Subject<AppInputEvent | undefined>
   ) {
-    super(status);
+    super(status, events);
     const img = Resources.get("TITLE")! as HTMLImageElement;
     this.title = new SpriteItem(img);
     this.title.matrix.translate(-img.width / 2, 0);
     this.scene.add(this.title);
 
+    const imgBg = Resources.get("TITLE-BG")! as HTMLImageElement;
+    this.bg = new SpriteItem(imgBg);
+    this.bg.matrix.translate(0, status.value.h! - imgBg.height);
+    this.bg.zDepth = -10;
+    this.scene.add(this.bg);
+
     this.mainMenu = new MainMenu();
     this.scene.add(this.mainMenu);
 
-    this.status.subscribe((s) => {
-      this.title.position.set(s.w! / 2, 64);
-      this.mainMenu.position.set(s.w! / 2, 256);
-      this.mainMenu.updateChildrenMatrix();
+    this.subscriptions.push(
+      this.status.subscribe((s) => {
+        this.title.position.set(s.w! / 2, 48);
+        this.mainMenu.position.set(s.w! / 2, 164);
+        this.mainMenu.updateChildrenMatrix();
 
-      const audio = Resources.get("MUSIC")! as HTMLAudioElement;
-      audio.loop = true;
-      audio.play();
-    });
+        const audio = Resources.get("MUSIC")! as HTMLAudioElement;
+        audio.loop = true;
+        // FIXME audio.play();
+      })
+    );
 
-    this.events.subscribe((e: AppInputEvent | undefined) => {
-      if (e && e.type === AppInputEventType.KEY_UP) {
-        if (e.button === "ArrowUp") {
-          this.mainMenu.previous();
-        } else if (e.button === "ArrowDown") {
-          this.mainMenu.next();
-        } else if (e.button === "Enter") {
-          console.log("Enter");
+    this.subscriptions.push(
+      this.events.subscribe((e: AppInputEvent | undefined) => {
+        if (e && e.type === AppInputEventType.KEY_UP) {
+          if (e.button === "ArrowUp") {
+            this.mainMenu.previous();
+          } else if (e.button === "ArrowDown") {
+            this.mainMenu.next();
+          } else if (e.button === "Enter") {
+            let newGameScene = GameScene.GAME;
+            if (this.mainMenu.current === MainMenu.HIGHSCORE) {
+              newGameScene = GameScene.HIGHSCORE;
+            } else if (this.mainMenu.current === MainMenu.CREDITS) {
+              newGameScene = GameScene.CREDITS;
+            }
+            this.status.value.scene = newGameScene;
+            this.status.next(this.status.value);
+          }
         }
-      }
-    });
+      })
+    );
   }
 
   update(delta: number): void {}

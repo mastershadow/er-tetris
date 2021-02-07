@@ -1,7 +1,8 @@
 export enum GameScene {
   PRELOADING,
   LOADING,
-  CREDITS,
   MAINSCREEN,
-  PLAYGROUND,
+  GAME,
+  HIGHSCORE,
+  CREDITS,
 }
