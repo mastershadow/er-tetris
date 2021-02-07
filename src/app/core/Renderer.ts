@@ -7,7 +7,10 @@ export class Renderer {
   h: number = 0;
   autoClear: boolean = true;
 
-  constructor(protected ctx: CanvasRenderingContext2D) {}
+  constructor(
+    protected ctx: CanvasRenderingContext2D,
+    protected buffer: CanvasRenderingContext2D
+  ) {}
 
   render(scenario: Scenario): void {
     // visit and sort scene items, excluding invisibiles
@@ -17,8 +20,11 @@ export class Renderer {
       this.clear();
     }
     for (const item of itemsToRender) {
-      item.render(this.ctx);
+      item.render(this.buffer);
     }
+
+    this.ctx.clearRect(0, 0, this.w, this.h);
+    this.ctx.drawImage(this.buffer.canvas, 0, 0);
   }
 
   visitAndSort(scene: Scene): Item[] {
@@ -41,6 +47,6 @@ export class Renderer {
   }
 
   clear(): void {
-    this.ctx.clearRect(0, 0, this.w, this.h);
+    this.buffer.clearRect(0, 0, this.w, this.h);
   }
 }

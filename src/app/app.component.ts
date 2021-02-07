@@ -22,6 +22,7 @@ import { Scenario } from "./scenario/Scenario";
 export class AppComponent implements AfterViewInit {
   @ViewChild("mainCanvas") private canvasRef!: ElementRef;
   private context!: CanvasRenderingContext2D;
+  private bufferContext!: CanvasRenderingContext2D;
   private scenario?: Scenario;
   private clock: Clock = new Clock();
   private currentScene?: GameScene;
@@ -40,7 +41,12 @@ export class AppComponent implements AfterViewInit {
       this.context = ctx;
       this.context.imageSmoothingEnabled = false;
 
-      this.renderer = new Renderer(this.context);
+      const bufferCanvas = document.createElement("canvas");
+      bufferCanvas.width = canvas.width;
+      bufferCanvas.height = canvas.height;
+      this.bufferContext = bufferCanvas.getContext("2d")!;
+
+      this.renderer = new Renderer(this.context, this.bufferContext);
 
       this.status.next({
         w: canvas.width,
