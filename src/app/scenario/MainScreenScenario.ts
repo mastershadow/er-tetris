@@ -105,8 +105,9 @@ export class MainScreenScenario extends BaseScenario {
     this.scene.add(this.mainMenu);
 
     this.status.subscribe((s) => {
-      this.title.position.set(s.w! / 2, 48);
-      this.mainMenu.position.set(s.w! / 2, 128);
+      this.title.position.set(s.w! / 2, 64);
+      this.mainMenu.position.set(s.w! / 2, 256);
+      this.mainMenu.updateChildrenMatrix();
 
       const audio = Resources.get("MUSIC")! as HTMLAudioElement;
       audio.loop = true;
