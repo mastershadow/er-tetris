@@ -24,12 +24,242 @@ class Border extends Group {
     }
   }
 }
+class Board {
+  private grid: number[][] = [];
+
+  constructor(private rows: number, private cols: number) {
+    for (let r = 0; r < rows; r++) {
+      this.grid.push(Array.from({ length: cols }, () => 0));
+    }
+  }
+}
+
+enum Direction {
+  Up,
+  Right,
+  Down,
+  Left,
+}
+
+// I, O, S, Z, T, L, J
+abstract class Piece {
+  abstract data: Map<Direction, number[][]>;
+
+  dataFor(dir: Direction): number[][] {
+    return this.data.get(dir)!;
+  }
+}
+
+class PieceI extends Piece {
+  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+    [
+      Direction.Up,
+      [
+        [0, 1, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+      ],
+    ],
+    [
+      Direction.Right,
+      [
+        [0, 0, 0, 0], //
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Down,
+      [
+        [0, 0, 1, 0], //
+        [0, 0, 1, 0],
+        [0, 0, 1, 0],
+        [0, 0, 1, 0],
+      ],
+    ],
+    [
+      Direction.Left,
+      [
+        [0, 0, 0, 0], //
+        [0, 0, 0, 0],
+        [1, 1, 1, 1],
+        [0, 0, 0, 0],
+      ],
+    ],
+  ]);
+}
+
+class PieceO extends Piece {
+  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+    [
+      Direction.Up,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Right,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Down,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Left,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+  ]);
+}
+
+class PieceT extends Piece {
+  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+    [
+      Direction.Up,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 0, 0],
+        [1, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Right,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 1, 0, 0],
+      ],
+    ],
+    [
+      Direction.Down,
+      [
+        [0, 0, 0, 0], //
+        [0, 0, 0, 0],
+        [1, 1, 1, 0],
+        [0, 1, 0, 0],
+      ],
+    ],
+    [
+      Direction.Left,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 0, 0],
+        [1, 1, 0, 0],
+        [0, 1, 0, 0],
+      ],
+    ],
+  ]);
+}
+class PieceS extends Piece {
+  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+    [
+      Direction.Up,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [1, 1, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Right,
+      [
+        [0, 1, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Down,
+      [
+        [0, 0, 0, 0], //
+        [0, 0, 1, 1],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Left,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 1, 0],
+      ],
+    ],
+  ]);
+}
+
+class PieceZ extends Piece {
+  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+    [
+      Direction.Up,
+      [
+        [0, 0, 0, 0], //
+        [0, 0, 1, 1],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Right,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 1, 0],
+      ],
+    ],
+    [
+      Direction.Down,
+      [
+        [0, 0, 0, 0], //
+        [0, 1, 1, 0],
+        [1, 1, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Direction.Left,
+      [
+        [0, 1, 0, 0], //
+        [0, 1, 1, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+  ]);
+}
 
 export class GameScenario extends BaseScenario {
   private static readonly rows = 26;
   private static readonly cols = 10;
   private title: SpriteItem;
   private border: Border;
+  private board: Board;
 
   constructor(
     protected status: BehaviorSubject<AppStatus>,
@@ -45,6 +275,8 @@ export class GameScenario extends BaseScenario {
 
     this.border = new Border(GameScenario.rows + 2, GameScenario.cols + 2);
     this.scene.add(this.border);
+
+    this.board = new Board(GameScenario.rows, GameScenario.cols);
 
     this.subscriptions.push(
       this.status.subscribe((s) => {
