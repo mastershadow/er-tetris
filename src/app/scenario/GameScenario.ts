@@ -32,9 +32,23 @@ class Board {
       this.grid.push(Array.from({ length: cols }, () => 0));
     }
   }
+
+  public merge(p: Piece, o: Orientation, col: number, row: number): void {}
+
+  public clearableRows(): number[] {
+    return [];
+  }
+
+  public canRotate(p: Piece, o: Orientation): boolean {
+    return false;
+  }
+
+  public collides(p: Piece, o: Orientation, col: number, row: number): boolean {
+    return false;
+  }
 }
 
-enum Direction {
+enum Orientation {
   Up,
   Right,
   Down,
@@ -43,17 +57,17 @@ enum Direction {
 
 // I, O, S, Z, T, L, J
 abstract class Piece {
-  abstract data: Map<Direction, number[][]>;
+  abstract data: Map<Orientation, number[][]>;
 
-  dataFor(dir: Direction): number[][] {
+  dataFor(dir: Orientation): number[][] {
     return this.data.get(dir)!;
   }
 }
 
 class PieceI extends Piece {
-  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
     [
-      Direction.Up,
+      Orientation.Up,
       [
         [0, 1, 0, 0], //
         [0, 1, 0, 0],
@@ -62,7 +76,7 @@ class PieceI extends Piece {
       ],
     ],
     [
-      Direction.Right,
+      Orientation.Right,
       [
         [0, 0, 0, 0], //
         [1, 1, 1, 1],
@@ -71,7 +85,7 @@ class PieceI extends Piece {
       ],
     ],
     [
-      Direction.Down,
+      Orientation.Down,
       [
         [0, 0, 1, 0], //
         [0, 0, 1, 0],
@@ -80,7 +94,7 @@ class PieceI extends Piece {
       ],
     ],
     [
-      Direction.Left,
+      Orientation.Left,
       [
         [0, 0, 0, 0], //
         [0, 0, 0, 0],
@@ -92,9 +106,9 @@ class PieceI extends Piece {
 }
 
 class PieceO extends Piece {
-  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
     [
-      Direction.Up,
+      Orientation.Up,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -103,7 +117,7 @@ class PieceO extends Piece {
       ],
     ],
     [
-      Direction.Right,
+      Orientation.Right,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -112,7 +126,7 @@ class PieceO extends Piece {
       ],
     ],
     [
-      Direction.Down,
+      Orientation.Down,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -121,7 +135,7 @@ class PieceO extends Piece {
       ],
     ],
     [
-      Direction.Left,
+      Orientation.Left,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -133,9 +147,9 @@ class PieceO extends Piece {
 }
 
 class PieceT extends Piece {
-  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
     [
-      Direction.Up,
+      Orientation.Up,
       [
         [0, 0, 0, 0], //
         [0, 1, 0, 0],
@@ -144,7 +158,7 @@ class PieceT extends Piece {
       ],
     ],
     [
-      Direction.Right,
+      Orientation.Right,
       [
         [0, 0, 0, 0], //
         [0, 1, 0, 0],
@@ -153,7 +167,7 @@ class PieceT extends Piece {
       ],
     ],
     [
-      Direction.Down,
+      Orientation.Down,
       [
         [0, 0, 0, 0], //
         [0, 0, 0, 0],
@@ -162,7 +176,7 @@ class PieceT extends Piece {
       ],
     ],
     [
-      Direction.Left,
+      Orientation.Left,
       [
         [0, 0, 0, 0], //
         [0, 1, 0, 0],
@@ -173,9 +187,9 @@ class PieceT extends Piece {
   ]);
 }
 class PieceS extends Piece {
-  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
     [
-      Direction.Up,
+      Orientation.Up,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -184,7 +198,7 @@ class PieceS extends Piece {
       ],
     ],
     [
-      Direction.Right,
+      Orientation.Right,
       [
         [0, 1, 0, 0], //
         [0, 1, 1, 0],
@@ -193,7 +207,7 @@ class PieceS extends Piece {
       ],
     ],
     [
-      Direction.Down,
+      Orientation.Down,
       [
         [0, 0, 0, 0], //
         [0, 0, 1, 1],
@@ -202,7 +216,7 @@ class PieceS extends Piece {
       ],
     ],
     [
-      Direction.Left,
+      Orientation.Left,
       [
         [0, 0, 0, 0], //
         [0, 1, 0, 0],
@@ -214,9 +228,9 @@ class PieceS extends Piece {
 }
 
 class PieceZ extends Piece {
-  data: Map<Direction, number[][]> = new Map<Direction, number[][]>([
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
     [
-      Direction.Up,
+      Orientation.Up,
       [
         [0, 0, 0, 0], //
         [0, 0, 1, 1],
@@ -225,7 +239,7 @@ class PieceZ extends Piece {
       ],
     ],
     [
-      Direction.Right,
+      Orientation.Right,
       [
         [0, 0, 0, 0], //
         [0, 1, 0, 0],
@@ -234,7 +248,7 @@ class PieceZ extends Piece {
       ],
     ],
     [
-      Direction.Down,
+      Orientation.Down,
       [
         [0, 0, 0, 0], //
         [0, 1, 1, 0],
@@ -243,11 +257,91 @@ class PieceZ extends Piece {
       ],
     ],
     [
-      Direction.Left,
+      Orientation.Left,
       [
         [0, 1, 0, 0], //
         [0, 1, 1, 0],
         [0, 0, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+  ]);
+}
+class PieceL extends Piece {
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
+    [
+      Orientation.Up,
+      [
+        [0, 0, 1, 0], //
+        [1, 1, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Right,
+      [
+        [0, 1, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Down,
+      [
+        [0, 0, 0, 0], //
+        [1, 1, 1, 0],
+        [1, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Left,
+      [
+        [1, 1, 0, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+  ]);
+}
+class PieceJ extends Piece {
+  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
+    [
+      Orientation.Up,
+      [
+        [1, 0, 0, 0], //
+        [1, 1, 1, 0],
+        [0, 0, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Right,
+      [
+        [0, 1, 1, 0], //
+        [0, 1, 0, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Down,
+      [
+        [0, 0, 0, 0], //
+        [1, 1, 1, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 0],
+      ],
+    ],
+    [
+      Orientation.Left,
+      [
+        [0, 1, 0, 0], //
+        [0, 1, 0, 0],
+        [1, 1, 0, 0],
         [0, 0, 0, 0],
       ],
     ],
