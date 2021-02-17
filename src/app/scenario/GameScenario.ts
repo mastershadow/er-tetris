@@ -6,6 +6,15 @@ import { Resources } from "../core/Resources";
 import { SpriteItem } from "../core/SpriteItem";
 import { GameScene } from "../GameScene";
 import { BaseScenario } from "./BaseScenario";
+import { Piece } from "./game/Piece";
+import { Orientation } from "./game/Orientation";
+import { PieceI } from "./game/PieceI";
+import { PieceJ } from "./game/PieceJ";
+import { PieceL } from "./game/PieceL";
+import { PieceO } from "./game/PieceO";
+import { PieceS } from "./game/PieceS";
+import { PieceT } from "./game/PieceT";
+import { PieceZ } from "./game/PieceZ";
 
 class Border extends Group {
   constructor(rows: number, cols: number) {
@@ -48,304 +57,34 @@ class Board {
   }
 }
 
-enum Orientation {
-  Up,
-  Right,
-  Down,
-  Left,
+export class GameState {
+  level: number = 0;
+  speed: number = 1000;
+  speedup: number = 1.5;
+  score: number = 0;
+  clearanceScore: number = 100;
+  nextLevelStep: number = 1000;
+  nextLevelMultiplier: number = 2.5;
 }
 
-// I, O, S, Z, T, L, J
-abstract class Piece {
-  abstract data: Map<Orientation, number[][]>;
+export class DiceRoller {
+  protected map: Map<number, Piece>;
 
-  dataFor(dir: Orientation): number[][] {
-    return this.data.get(dir)!;
+  public constructor() {
+    this.map = new Map<number, Piece>([
+      [0, new PieceI()],
+      [1, new PieceJ()],
+      [2, new PieceL()],
+      [3, new PieceO()],
+      [4, new PieceS()],
+      [5, new PieceT()],
+      [6, new PieceZ()],
+    ]);
   }
-}
 
-class PieceI extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 1, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 0, 0, 0], //
-        [1, 1, 1, 1],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 1, 0], //
-        [0, 0, 1, 0],
-        [0, 0, 1, 0],
-        [0, 0, 1, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 0, 0, 0], //
-        [0, 0, 0, 0],
-        [1, 1, 1, 1],
-        [0, 0, 0, 0],
-      ],
-    ],
-  ]);
-}
-
-class PieceO extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-  ]);
-}
-
-class PieceT extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 0, 0],
-        [1, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 1, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [0, 0, 0, 0],
-        [1, 1, 1, 0],
-        [0, 1, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 0, 0],
-        [1, 1, 0, 0],
-        [0, 1, 0, 0],
-      ],
-    ],
-  ]);
-}
-class PieceS extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [1, 1, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 1, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [0, 0, 1, 1],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 0, 1, 0],
-      ],
-    ],
-  ]);
-}
-
-class PieceZ extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 0, 0, 0], //
-        [0, 0, 1, 1],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 0, 1, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [0, 1, 1, 0],
-        [1, 1, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 1, 0, 0], //
-        [0, 1, 1, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-  ]);
-}
-class PieceL extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [0, 0, 1, 0], //
-        [1, 1, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 1, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [1, 1, 1, 0],
-        [1, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [1, 1, 0, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-  ]);
-}
-class PieceJ extends Piece {
-  data: Map<Orientation, number[][]> = new Map<Orientation, number[][]>([
-    [
-      Orientation.Up,
-      [
-        [1, 0, 0, 0], //
-        [1, 1, 1, 0],
-        [0, 0, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Right,
-      [
-        [0, 1, 1, 0], //
-        [0, 1, 0, 0],
-        [0, 1, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Down,
-      [
-        [0, 0, 0, 0], //
-        [1, 1, 1, 0],
-        [0, 0, 1, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-    [
-      Orientation.Left,
-      [
-        [0, 1, 0, 0], //
-        [0, 1, 0, 0],
-        [1, 1, 0, 0],
-        [0, 0, 0, 0],
-      ],
-    ],
-  ]);
+  public draw(): Piece {
+    return this.map.get(Math.floor(Math.random() * this.map.size))!;
+  }
 }
 
 export class GameScenario extends BaseScenario {
@@ -354,12 +93,18 @@ export class GameScenario extends BaseScenario {
   private title: SpriteItem;
   private border: Border;
   private board: Board;
+  private gameState: GameState;
+  private diceRoller: DiceRoller;
+  private stepTimeoutHandler?: number;
 
   constructor(
     protected status: BehaviorSubject<AppStatus>,
     protected events: Subject<AppInputEvent | undefined>
   ) {
     super(status, events);
+
+    this.gameState = new GameState();
+    this.diceRoller = new DiceRoller();
 
     const titleImage = Resources.get("TITLE")! as HTMLImageElement;
     this.title = new SpriteItem(titleImage);
@@ -397,6 +142,16 @@ export class GameScenario extends BaseScenario {
         }
       })
     );
+
+    // use delta timing for better time management
+    this.setStepTimeout();
+  }
+
+  protected setStepTimeout() {
+    if (this.stepTimeoutHandler) {
+      window.clearTimeout(this.stepTimeoutHandler);
+    }
+    this.stepTimeoutHandler = window.setTimeout(() => {}, this.gameState.speed);
   }
 
   update(delta: number): void {}
